@@ -17,6 +17,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
 
+    <!-- =============================================
+         PWA / MOBILE APP
+    ============================================== -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="{{ shop.name | escape }}">
+    <meta name="application-name" content="{{ shop.name | escape }}">
+    <meta name="format-detection" content="telephone=no">
+
     {%- if settings.favicon -%}
       <meta name="theme-color" content="{{ settings.color_background }}">
     {%- endif -%}
@@ -41,17 +51,33 @@
 
     <link rel="canonical" href="{{ canonical_url }}">
 
+    {%- comment -%}
+      Hreflang: informa ao Google qual versão do idioma servir em cada país.
+      Essencial se a loja tiver múltiplos mercados/idiomas.
+    {%- endcomment -%}
+    {%- if localization.available_languages.size > 1 -%}
+      {%- for language in localization.available_languages -%}
+        <link
+          rel="alternate"
+          hreflang="{{ language.iso_code }}"
+          href="{{ request.origin }}{{ request.path }}?locale={{ language.iso_code }}"
+        >
+      {%- endfor -%}
+      <link rel="alternate" hreflang="x-default" href="{{ request.origin }}{{ request.path }}">
+    {%- endif -%}
+
     {%- render 'social-meta-tags' -%}
     {%- render 'microdata-schema' -%}
 
     <!-- =============================================
-         FAVICONS
+         FAVICONS + MANIFEST
     ============================================== -->
     {%- if settings.favicon -%}
       <link rel="shortcut icon" href="{{ settings.favicon | image_url: width: 32 }}">
       <link rel="icon" type="image/png" sizes="96x96" href="{{ settings.favicon | image_url: width: 96 }}">
       <link rel="apple-touch-icon" sizes="180x180" href="{{ settings.favicon | image_url: width: 180 }}">
     {%- endif -%}
+    <link rel="manifest" href="/manifest.json">
 
     <!-- =============================================
          PRECONNECTS — negociação de rede antecipada
@@ -115,8 +141,8 @@
     <script type="importmap">
       {
         "imports": {
-          "vendor":      {{ 'vendor.min.js'    | asset_url | json }},
-          "theme":       {{ 'theme.js'         | asset_url | json }},
+          "vendor":      {{ 'vendor.min.js'     | asset_url | json }},
+          "theme":       {{ 'theme.js'          | asset_url | json }},
           "photoswipe":  {{ 'photoswipe.min.js' | asset_url | json }}
         }
       }
@@ -144,6 +170,12 @@
     data-template="{{ request.page_type | escape }}"
     data-page-type="{{ request.page_type | escape }}"
   >
+    {%- comment -%}
+      Troca a classe no-js por js imediatamente, antes de qualquer render.
+      Impede flash de estilos que dependem da presença ou ausência de JavaScript.
+    {%- endcomment -%}
+    <script>document.documentElement.classList.replace('no-js', 'js');</script>
+
     {%- render 'shadow-dom-templates' -%}
 
     <loading-bar class="loading-bar" aria-hidden="true"></loading-bar>

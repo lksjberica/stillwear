@@ -1,0 +1,33 @@
+{%- comment -%}
+  robots.txt.liquid
+  Controla quais páginas os robôs de busca podem ou não rastrear.
+
+  Regras:
+  - Bloqueia páginas internas (cart, checkout, account, busca) que não devem
+    aparecer no Google — economiza crawl budget e evita conteúdo duplicado.
+  - Permite rastrear tudo o mais (produtos, coleções, páginas, blog).
+  - O sitemap é declarado explicitamente para facilitar a indexação.
+{%- endcomment -%}
+
+User-agent: *
+
+# Páginas operacionais — sem valor de SEO
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /account
+Disallow: /account/login
+Disallow: /account/register
+Disallow: /account/addresses
+
+# Resultados de busca interna — conteúdo duplicado
+Disallow: /search
+
+# Parâmetros de rastreamento e variantes que geram URLs duplicadas
+Disallow: /*?*sort_by=
+Disallow: /*?*variant=
+Disallow: /*?*utm_
+Disallow: /*?*ref=
+
+# Sitemap — informa ao Google onde encontrar todas as URLs indexáveis
+Sitemap: {{ shop.url }}/sitemap.xml
