@@ -91,6 +91,12 @@
     <link rel="dns-prefetch" href="https://connect.facebook.net">
     <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
 
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+
     <!-- =============================================
          PRELOADS — fontes e CSS crítico
     ============================================== -->
@@ -110,6 +116,30 @@
       }}
     {%- endunless -%}
 
+    {%- unless settings.heading_font.system? and settings.text_font.system? -%}
+      <style>
+        {%- comment -%}font-display:swap previne texto invisível enquanto a fonte carrega (impacto no FCP){%- endcomment -%}
+        {%- unless settings.heading_font.system? -%}
+          @font-face {
+            font-family: {{ settings.heading_font.family | json }};
+            font-weight: {{ settings.heading_font.weight }};
+            font-style: {{ settings.heading_font.style }};
+            src: url('{{ settings.heading_font | font_url }}') format('woff2');
+            font-display: swap;
+          }
+        {%- endunless -%}
+        {%- unless settings.text_font.system? -%}
+          @font-face {
+            font-family: {{ settings.text_font.family | json }};
+            font-weight: {{ settings.text_font.weight }};
+            font-style: {{ settings.text_font.style }};
+            src: url('{{ settings.text_font | font_url }}') format('woff2');
+            font-display: swap;
+          }
+        {%- endunless -%}
+      </style>
+    {%- endunless -%}
+
     {{ 'theme.css' | asset_url | stylesheet_tag: preload: true }}
 
     <!-- =============================================
@@ -124,6 +154,13 @@
     {%- if request.page_type == 'gift_card' -%}
       <script src="{{ 'vendor/qrcode.js' | shopify_asset_url }}" defer></script>
     {%- endif -%}
+
+    <!-- =============================================
+         MODULEPRELOAD — pre-compila módulos ES antes do parse
+    ============================================== -->
+    <link rel="modulepreload" href="{{ 'vendor.min.js' | asset_url }}" as="script">
+    <link rel="modulepreload" href="{{ 'theme.js' | asset_url }}" as="script">
+    <link rel="modulepreload" href="{{ 'photoswipe.min.js' | asset_url }}" as="script">
 
     <!-- =============================================
          IMPORTMAP — módulos ES
@@ -151,8 +188,6 @@
     <script type="module" src="{{ 'vendor.min.js' | asset_url }}"></script>
     <script type="module" src="{{ 'theme.js'      | asset_url }}"></script>
 
-    <!-- App de SDK externo (Visually.io) — carregado após pixels Shopify -->
-    {%- render 'visually_io_sdk' -%}
   </head>
 
   {%- liquid
@@ -210,5 +245,11 @@
     <x-toast class="toast" role="status" aria-live="polite" aria-atomic="true">
       {%- comment -%}Container para mensagens de notificação — NÃO REMOVER{%- endcomment -%}
     </x-toast>
+
+    {%- comment -%}
+      visually_io_sdk movido para o final do body — evita bloqueio de renderização.
+      Deve permanecer após content_for_layout para que o DOM que ele acessa já exista.
+    {%- endcomment -%}
+    {%- render 'visually_io_sdk' -%}
   </body>
 </html>
